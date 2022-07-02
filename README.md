@@ -41,14 +41,14 @@ After choosing the appropriate values, you can run the generation script, which 
 ./generate_hg.sh
  ```
 
-Here is also provided the file used by use.
+Here is also provided the file used by us.
 
 # Prerequisites
 
 To reproduce the results, one must create the directories with the code below in the directory /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/code, then compile it with CMake. Generate the hypergraph on which to run and then run the Python script.
 Keep in mind that the results may vary, as they depend on nondeterministic elements, such as how the operating system chooses to schedule the execution.
 
-## Benchmarks without partitioning 
+### Benchmarks without partitioning 
 
 The code we used was located in /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/code/opt_5, here is located in code\opt_5.
 To change the scheduling directives for computation instead, go to the following path:
@@ -75,7 +75,7 @@ AND ALSO CHANGE THIS!
             }
 ```
 
-## Benchmarks with partitioning
+### Benchmarks with partitioning
 
 The code we used was located in /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/code/opt_6,  here is located in code\opt_6.
 To change the scheduling directives for the initialization part, you have to go to the C++ utils file, found at the following path:
@@ -151,7 +151,7 @@ To reproduce the execution, one must simply launch the python file by entering t
 
  ```
  program = './benchmark_opt_3' #when testing the original code
- program = './benchmark_opt_5' #when testing only modifying the pragmas
+ program = './benchmark_opt_5' #when testing only the pragmas
  program = ['perf', 'stat', '-e', 'node-loads', '-e', 'node-stores', '-e', 'node-loads-misses', '-e', 'node-stores-misses', '-o', output_perf, '--append', './benchmark_opt_6', input_file] #with partitioning
  ```
 
