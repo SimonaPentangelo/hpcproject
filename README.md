@@ -40,32 +40,64 @@ After choosing the appropriate values, you can run the generation script, which 
 ```
 ./generate_hg.sh
  ```
+
+Here is also provided the file used by use.
+
 # Prerequisites
 
-To reproduce the results, one must first compile the C++ code of Label propagation with CMake. Generate the hypergraph on which to run and then run the autotuning Python script.
+To reproduce the results, one must create the directories with the code below in the directory /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/code, then compile it with CMake. Generate the hypergraph on which to run and then run the Python script.
 Keep in mind that the results may vary, as they depend on nondeterministic elements, such as how the operating system chooses to schedule the execution.
-To achieve the desired results, we need to change the OpenMP scheduling directives, in the Label Propagation code, for both the graph initialization phase and the computation part.
+
+## Benchmarks without partitioning 
+
+The code we used was located in /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/code/opt_5, here is located in code\opt_5.
+To change the scheduling directives for computation instead, go to the following path:
+```
+/home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/code/opt_5/label_propagation.cpp
+```
+Change the value of the directives like this:
+```
+
+#pragma omp parallel
+        {
+            #pragma omp for private(current_edge) nowait //schedule(clause) used when trying different schedule clauses
+            for (int i = 0; i < num_edge; i++)
+            {
+               ...
+            }
+
+AND ALSO CHANGE THIS!
+
+ #pragma omp for private(new_label, current_vertex) nowait //schedule(clause) used when trying different schedule clauses
+            for (int i = 0; i < num_vertex; i++)
+            {
+                ...
+            }
+```
+
+## Benchmarks with partitioning
+
+The code we used was located in /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/code/opt_6,  here is located in code\opt_6.
 To change the scheduling directives for the initialization part, you have to go to the C++ utils file, found at the following path:
  ```
  /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/src/benchmarks/utils.hpp
  ```
 
- To change the initialization directives enter a different value in the round brackets, as follows:
+When testing the code with hypergraph partitioning, change the initialization directives enter a different value in the round brackets, as follows:
 ```
 	HyperGraph *hg = new HyperGraph(num_vertices, num_edges);
 	//Read the edges and write it to the HyperGraph	
-	#pragma omp parallel
+	/*#pragma omp parallel insert this pragma
 	{
-		#pragma omp for schedule(static)  <----- CHANGE THIS VALUE
+		#pragma omp for schedule(clause) change with the preferred clause*/ 
 		for (int i = 0; i < num_vertices; i++)
 		{
 			for (int j = vertices_offsets[i]; (i < num_vertices - 1) ? j < vertices_offsets[i + 1] : j < data_size; j++)
 			{
-				const auto cur_edge = edges_list[j];
-				hg->add_vertex_to_edge(i, cur_edge);
+				...
 			}
 		}
-	}
+	//}
 ```
 
 To change the scheduling directives for computation instead, go to the following path:
@@ -75,22 +107,36 @@ To change the scheduling directives for computation instead, go to the following
 Change the value of the directives like this:
 ```
 
-#pragma omp for private(current_edge) nowait schedule(guided) <-- CHANGE THIS
-    for (int i = 0; i < num_edge; i++)
+ #pragma omp parallel
         {
-           ...
-        }
+            #pragma omp for private(current_edge) nowait //schedule(clause) here the clause you want
+            for (int i = 0; i < num_edge/2; i++)
+            {
+                ...
+            }
+
+            #pragma omp for private(current_edge) nowait //schedule(clause) here the clause you want
+            for (int i = num_edge/2; i < num_edge; i++)
+            {
+                ...
+            }
 
 AND ALSO CHANGE THIS!
 
-#pragma omp for private(new_label, current_vertex) nowait schedule(guided)  
-    for (int i = 0; i < num_vertex; i++)
-        {
-            ...
-        }
+ #pragma omp for private(new_label, current_vertex) nowait //schedule(clause) here the clause you want
+            for (int i = 0; i < num_vertex/2; i++)
+            {
+                ...
+            }
+
+            #pragma omp for private(new_label, current_vertex) nowait //schedule(clause) here the clause you want
+            for (int i = num_vertex/2; i < num_vertex; i++)
+            {
+                ...
+            }
 ```
 
-# Script Python for Autotuning
+# Script Python 
 
 The python file handles the execution of C++ code for label propagation and stores the execution times in specially created files.
 Execution involves changing configurations to find out which one is best. The elements that vary are these:
@@ -101,13 +147,15 @@ The script takes as input a text file representing the hypergraph in terms of ve
 Once the executions are completed for each configuration, it stores the execution times, to calculate mean, variance and median.
 It also takes care of analyzing and storing the values of the perf tool, which is a profiling tool for numa architectures.
 
-To reproduce the execution, one must simply launch the python file by entering the path to the label propagation code in this code section (replace benchmark_opt_6 with your program):
+To reproduce the execution, one must simply launch the python file by entering the path to the label propagation code in this code section (in our case benchmark_opt_3 for the original code, benchmark_opt_5 for the benchmarks without partitioning and then benchmark_opt_6 for the benchmarks with partitioning):
 
  ```
- program = ['perf', 'stat', '-e', 'node-loads', '-e', 'node-stores', '-e', 'node-loads-misses', '-e', 'node-stores-misses', '-o', output_perf, '--append', './benchmark_opt_6', input_file]
+ program = './benchmark_opt_3' #when testing the original code
+ program = './benchmark_opt_5' #when testing only modifying the pragmas
+ program = ['perf', 'stat', '-e', 'node-loads', '-e', 'node-stores', '-e', 'node-loads-misses', '-e', 'node-stores-misses', '-o', output_perf, '--append', './benchmark_opt_6', input_file] #with partitioning
  ```
 
- To run it you need to go to the following path:
+ To run the Python script you need to copy it to the following path:
  ```
  /home/hpc2/Hpc-LabelPropagation-Project/LabelPropagation-C++/build/bin
  ```

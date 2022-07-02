@@ -273,7 +273,7 @@ find_communities_struct *find_communities(HyperGraph *h, CFLabelPropagationFinde
         stop = true;
         #pragma omp parallel
         {
-            #pragma omp for private(current_edge) nowait //schedule(clause) used when trying different schedule clauses
+            #pragma omp for private(current_edge) nowait //schedule(clause)
             for (int i = 0; i < num_edge; i++)
             {
                 current_edge = edges[i];
@@ -286,7 +286,7 @@ find_communities_struct *find_communities(HyperGraph *h, CFLabelPropagationFinde
                 shuffle(vertices, num_vertex, rng);
             }
 
-            #pragma omp for private(new_label, current_vertex) nowait //schedule(clause) used when trying different schedule clauses
+            #pragma omp for private(new_label, current_vertex) nowait //schedule(clause) 
             for (int i = 0; i < num_vertex; i++)
             {
                 current_vertex = vertices[i];
