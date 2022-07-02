@@ -15,6 +15,7 @@ output_perf = 'output_perf.txt'
 #program = './benchmark_opt_5' when testing w/o modifying the pragmas
 #program = './benchmark_opt_6' when testing with modified pragmas w/o perf
 program = ['perf', 'stat', '-e', 'node-loads', '-e', 'node-stores', '-e', 'node-loads-misses', '-e', 'node-stores-misses', '-o', output_perf, '--append', './benchmark_opt_6', input_file]
+output_file_result = "5000_300_2500_results"
 res = [0, 0, 0, 0]
 limit = 10
 all_tests = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -164,7 +165,7 @@ def runTest(res, all_tests):
                 all_tests[x] = float(splittedString[4].split(':')[1])
 
 
-f = open("5000_300_2500_results", 'a')
+f = open(output_file_result, 'a')
 
 for th in num_thread:
     os.environ['OMP_NUM_THREADS'] = th

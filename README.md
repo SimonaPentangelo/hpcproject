@@ -138,7 +138,7 @@ AND ALSO CHANGE THIS!
 
 # Script Python 
 
-The python file handles the execution of C++ code for label propagation and stores the execution times in specially created files.
+The python file handles the execution of C++ code for label propagation and stores the execution times in specifically created files.
 Execution involves changing configurations to find out which one is best. The elements that vary are these:
 - The PLACES and PROC_BINDINGS directives.
 - The number of threads involved in the computation
